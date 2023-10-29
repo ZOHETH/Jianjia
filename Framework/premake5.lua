@@ -13,6 +13,7 @@ project "Framework"
 
       "../vendor/imgui",
       "../vendor/glfw/include",
+      "../vendor/stb_image",
 
       "%{IncludeDir.VulkanSDK}",
       "%{IncludeDir.glm}",
