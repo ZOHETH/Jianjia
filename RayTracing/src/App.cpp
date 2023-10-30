@@ -10,7 +10,7 @@ public:
 	virtual void OnAttach() override
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.FontGlobalScale = 1.4;
+		io.FontGlobalScale = 1.4f;
 		ImVec4* colors = ImGui::GetStyle().Colors;
 		colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.0f);
 		colors[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.08f, 0.08f, 1.0f);
@@ -30,8 +30,8 @@ public:
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		
 		ImGui::Begin("Viewport");
-		m_ViewportWidth = ImGui::GetContentRegionAvail().x;
-		m_ViewportHeight = ImGui::GetContentRegionAvail().y;
+		m_ViewportWidth = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);
+		m_ViewportHeight = static_cast<uint32_t>(ImGui::GetContentRegionAvail().y);
 
 		if (m_Image)
 		{
