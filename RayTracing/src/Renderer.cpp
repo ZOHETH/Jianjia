@@ -1,5 +1,15 @@
 #include "Renderer.h"
 
+static uint32_t ConvertToRGBA(const glm::vec4& color)
+{
+	uint8_t r = static_cast<uint8_t>(color.r * 255.0f);
+	uint8_t g = static_cast<uint8_t>(color.g * 255.0f);
+	uint8_t b = static_cast<uint8_t>(color.b * 255.0f);
+	uint8_t a = static_cast<uint8_t>(color.a * 255.0f);
+
+	return (a << 24) | (b << 16) | (g << 8) | r;
+}
+
 void Renderer::OnResize(uint32_t width, uint32_t height)
 {
 	if (m_FinalImage)
@@ -25,16 +35,18 @@ void Renderer::Render()
 		{
 			glm::vec2 coord = { (float)x / (float)m_FinalImage->GetWidth(), (float)y / (float)m_FinalImage->GetHeight() };
 			coord = coord * 2.0f - 1.0f; // [0, 1] -> [-1, 1]
-			m_ImageData[y * m_FinalImage->GetWidth() + x] = PerPixel(coord);
+			glm::vec4 color = PerPixel(coord);
+			color = glm::clamp(color, 0.0f, 1.0f);
+			m_ImageData[y * m_FinalImage->GetWidth() + x] = ConvertToRGBA(color);
 		}
 	}
 
 	m_FinalImage->SetData(m_ImageData);
 }
 
-uint32_t Renderer::PerPixel(glm::vec2 coord)
+glm::vec4 Renderer::PerPixel(glm::vec2 coord)
 {
-	glm::vec3 rayOrigin = { 0.0f, 0.0f, 2.0f };
+	glm::vec3 rayOrigin = { 0.0f, 0.0f, 1.0f };
 	glm::vec3 rayDirection = { coord.x, coord.y, -1.0f };
 	float radius = 0.5f;
 
@@ -43,8 +55,20 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 	float c = glm::dot(rayOrigin, rayOrigin) - radius * radius;
 
 	float discriminant = b * b - 4.0f * a * c;
-	if(discriminant >= 0.0f)
-		return 0xff99dd00;
+	if (discriminant < 0.0f)
+		return glm::vec4(0, 0, 0, 1);
 
-	return 0xff000000;
+	float closestT = (-b - sqrt(discriminant)) / (2.0f * a);
+	float t0 = (-b + sqrt(discriminant)) / (2.0f * a);
+
+	glm::vec3 hitPoint = rayOrigin + rayDirection * closestT;
+	glm::vec3 normal = glm::normalize(hitPoint);
+
+	glm::vec3 lightDirection = glm::normalize(rayOrigin - hitPoint);
+	float lightIntensity = glm::max(glm::dot(normal, lightDirection), 0.0f);
+
+	glm::vec3 sphereColor = { 1.0f, 0.0f, 1.0f };
+	glm::vec3 lightColor = { 1.0f, 1.0f, 1.0f };
+	sphereColor = sphereColor * lightIntensity * lightColor;
+	return glm::vec4(sphereColor, 1.0f);
 }
