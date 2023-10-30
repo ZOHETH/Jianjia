@@ -3,6 +3,8 @@
 #include "Application.h"
 #include "Image.h"
 
+#include "Renderer.h"
+
 
 class ExampleLayer : public jjf::Layer
 {
@@ -33,10 +35,9 @@ public:
 		m_ViewportWidth = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);
 		m_ViewportHeight = static_cast<uint32_t>(ImGui::GetContentRegionAvail().y);
 
-		if (m_Image)
-		{
-			ImGui::Image(m_Image->GetDescriptorSet(), { (float)m_ViewportWidth, (float)m_ViewportHeight });
-		}
+		auto image = m_Renderer.GetFinalImage();
+		if(image)
+			ImGui::Image((void*)image->GetDescriptorSet(), ImVec2((float)m_ViewportWidth, (float)m_ViewportHeight), ImVec2(0, 1), ImVec2(1, 0));
 
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -46,27 +47,15 @@ public:
 
 	void Render()
 	{
-		if (!m_Image || m_ViewportWidth != m_Image->GetWidth() || m_ViewportHeight != m_Image->GetHeight())
-		{
-			m_Image = std::make_shared<jjf::Image>(m_ViewportWidth, m_ViewportHeight, jjf::ImageFormat::RGBA);
-			delete[] m_ImageData;
-			m_ImageData = new uint32_t[m_ViewportWidth * m_ViewportHeight];
-
-			for (uint32_t i = 0; i < m_ViewportWidth * m_ViewportHeight; i++)
-			{
-				m_ImageData[i] = 0xff99dd00;
-			}
-
-			m_Image->SetData(m_ImageData);
-		}
+		m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
+		m_Renderer.Render();
 	}
 
 private:
 	uint32_t m_ViewportWidth = 0;
 	uint32_t m_ViewportHeight = 0;
 
-	std::shared_ptr<jjf::Image> m_Image;
-	uint32_t* m_ImageData = nullptr;
+	Renderer m_Renderer;
 
 	float m_LastFrameTime = 0.0f;
 
