@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Layer.h"
-
 #include <string>
 #include <vector>
 #include <memory>
@@ -9,6 +7,8 @@
 
 #include "imgui.h"
 #include "vulkan/vulkan.h"
+
+#include "Layer.h"
 
 void check_vk_result(VkResult err);
 
@@ -18,7 +18,7 @@ namespace jjf {
 
 	struct ApplicationSpecification
 	{
-		std::string Name = "Walnut App";
+		std::string Name = "App";
 		uint32_t Width = 1600;
 		uint32_t Height = 900;
 	};

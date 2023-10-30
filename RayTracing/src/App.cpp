@@ -1,7 +1,8 @@
-#include <stdint.h>
+#include <cstdint>
 
 #include "Application.h"
 #include "Image.h"
+#include "Timer.h"
 
 #include "Renderer.h"
 
@@ -9,7 +10,15 @@
 class ExampleLayer : public jjf::Layer
 {
 public:
-	virtual void OnAttach() override
+	ExampleLayer()
+		: m_Camera(45.0f, 0.1f, 100.0f) {}
+
+	void OnUpdate(float ts) override
+	{
+		m_Camera.OnUpdate(ts);
+	}
+
+	void OnAttach() override
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.FontGlobalScale = 1.4f;
@@ -19,7 +28,7 @@ public:
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.1f, 0.1f, 0.1f, 0.6f);
 	}
 
-	virtual void OnUIRender() override
+	void OnUIRender() override
 	{
 		ImGui::Begin("Settings");
 		ImGui::Text("Last render: %.3fms", m_LastFrameTime);
@@ -47,8 +56,13 @@ public:
 
 	void Render()
 	{
+		jjf::Timer timer;
+
 		m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
-		m_Renderer.Render();
+		m_Camera.OnResize(m_ViewportWidth, m_ViewportHeight);
+		m_Renderer.Render(m_Camera);
+
+		m_LastFrameTime = timer.ElapsedMillis();
 	}
 
 private:
@@ -56,6 +70,7 @@ private:
 	uint32_t m_ViewportHeight = 0;
 
 	Renderer m_Renderer;
+	Camera m_Camera;
 
 	float m_LastFrameTime = 0.0f;
 
